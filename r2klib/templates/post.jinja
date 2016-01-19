@@ -8,4 +8,10 @@
 <em>by <a href="http://reddit.com/u/{{ p.author }}">{{ p.author }}</a></em>
 {% endif %}
 <p>{{ markdown(p.selftext) }}</p>
+{% for subreddit_comment in p.comments %}
+<div style="margin-bottom:15px; padding-bottom: 15px; border-bottom: 1px solid">
+<div><span style="font-weight: bold">Author:</span> {{subreddit_comment.author}}</div>
+{{ subreddit_comment.body_html }}
+</div>
+{% endfor %}
 {% endmacro %}

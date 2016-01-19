@@ -21,6 +21,7 @@ into a Kindle-formatted MOBI book.
 Usage:
     r2k.py top <subreddit> [--posts=<n>] [--period=<t>] [options]
     r2k.py hot <subreddit> [--posts=<n>] [options]
+    r2k.py particular <thread>
 
 Options:
     --posts=<n>         The number of posts to include in the generated book.
@@ -33,6 +34,7 @@ Options:
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+OUTPUT_FORMAT = 'epub'
 
 def from_cli():
     args = docopt(USAGE)
@@ -40,6 +42,7 @@ def from_cli():
     max_posts = int(args['--posts'])
     period = args['--period']
     subreddit = args['<subreddit>']
+    thread_url = args['<thread>']
 
     # Setup logging.
     ch = logging.StreamHandler()
@@ -65,6 +68,8 @@ def from_cli():
         }[period](limit=max_posts)
     elif args['hot']:
         posts = sub.get_hot(limit=max_posts)
+    elif args['particular']:
+        posts = sub.get_submission(url = thread_url)
 
     env = Environment(loader=PackageLoader('r2klib', 'templates'))
     thread_template = env.get_template('thread.jinja')
@@ -99,7 +104,7 @@ def from_cli():
                 subprocess.call([
                     ebookconvert,
                     'r2k_result.htm',
-                    'r2k_result.mobi'
+                    'r2k_result.' + OUTPUT_FORMAT
                 ], stdout=devnull, stderr=subprocess.STDOUT)
                 converted = True
             else:
@@ -107,7 +112,7 @@ def from_cli():
 
     if converted:
         os.remove('r2k_result.htm')
-        os.rename('r2k_result.mobi', 'r2k_{sub}_{period}_{dt}.mobi'.format(
+        os.rename('r2k_result.' + OUTPUT_FORMAT, ('r2k_{sub}_{period}_{dt}.' + OUTPUT_FORMAT).format(
             sub=subreddit,
             period=period,
             dt=datetime.datetime.today().strftime('%d-%m-%Y')
